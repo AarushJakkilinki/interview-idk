@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>InterviewPro AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f5f4f1;--card:#fff;--line:#e5e3de;--ink:#191917;--mute:#6f6d67;--soft:#efede8;--bad:#b3402e;--good:#3d7457;color-scheme:light}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141412;--card:#1c1c1a;--line:#2e2d29;--ink:#f1efe9;--mute:#9b988f;--soft:#242320;--bad:#e0806c;--good:#7fb896;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#141412;--card:#1c1c1a;--line:#2e2d29;--ink:#f1efe9;--mute:#9b988f;--soft:#242320;--bad:#e0806c;--good:#7fb896;color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.55;letter-spacing:-.006em}
+h1,h2,h3{font-weight:600;letter-spacing:-.02em}
+h4{font-size:.75rem;font-weight:600;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;margin-top:1rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px}
+.mute{color:var(--mute)}.bad{color:var(--bad)}.good{color:var(--good)}
+.chip{padding:.4rem .8rem;border:1px solid var(--line);border-radius:999px;font-size:.85rem;background:var(--card);cursor:pointer;color:var(--ink)}
+.chip:hover{border-color:var(--mute)}.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn{padding:.75rem 1rem;border-radius:10px;font-weight:500;background:var(--ink);color:var(--bg);width:100%}
+.btn:disabled{opacity:.5}
+.btn2{padding:.75rem 1rem;border-radius:10px;font-weight:500;border:1px solid var(--line);background:var(--card);width:100%}
+.inp{width:100%;margin-top:.6rem;padding:.6rem .8rem;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);outline:none}
+.inp:focus{border-color:var(--ink)}
+.track{height:6px;background:var(--soft);border-radius:9px;overflow:hidden}
+.track i{display:block;height:100%;background:var(--ink);border-radius:9px;transition:width .4s}
+.lst{margin:.4rem 0 .6rem 1.1rem;list-style:disc;font-size:.9rem}.lst li{margin-bottom:.25rem}
+.label{font-size:.85rem;font-weight:500;margin:1.2rem 0 .5rem}
+.stage{position:relative;aspect-ratio:16/10;background:var(--soft);overflow:hidden}
+.pip{position:absolute;right:10px;bottom:10px;width:104px;height:78px;border-radius:8px;background:#000;object-fit:cover;border:2px solid var(--card);transform:scaleX(-1)}
+.pipoff{position:absolute;right:10px;bottom:10px;width:104px;height:78px;border-radius:8px;background:var(--card);border:1px solid var(--line);font-size:.7rem;display:grid;place-items:center;color:var(--mute);text-align:center}
+.tag{position:absolute;left:10px;bottom:10px;background:rgba(20,20,18,.75);color:#fff;font-size:.78rem;padding:.3rem .6rem;border-radius:7px}
+.recd{position:absolute;left:10px;top:10px;background:rgba(20,20,18,.75);color:#fff;font-size:.75rem;padding:.25rem .55rem;border-radius:99px;display:flex;gap:6px;align-items:center}
+.recd b{width:8px;height:8px;border-radius:9px;background:#e5484d;animation:bl 1.1s infinite}
+@keyframes bl{50%{opacity:.25}}
+.wave{display:flex;align-items:flex-end;gap:3px;height:40px}
+.bar{width:4px;border-radius:2px;background:var(--mute);height:4px}
+#mouth,.eye{transform-box:fill-box;transform-origin:center}
+.talk #mouth{animation:m .26s infinite alternate}
+@keyframes m{from{transform:scaleY(1)}to{transform:scaleY(4.5)}}
+.eye{animation:b 5s infinite}
+@keyframes b{0%,95%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
+.stage.talk{box-shadow:inset 0 0 0 3px var(--good)}
+.hard{border-color:var(--bad)!important;animation:t 1.5s infinite}
+@keyframes t{50%{box-shadow:0 0 0 3px rgba(179,64,46,.35)}}
+.cap{min-height:96px;font-size:.95rem;width:100%;background:transparent;color:var(--ink);outline:none;resize:none}
+.fade{animation:f .3s ease}@keyframes f{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+details>summary{cursor:pointer;list-style:none}details>summary::-webkit-details-marker{display:none}
+details[open] .chev{transform:rotate(180deg)}
+</style>
+</head>
+<body>
+<div class="max-w-3xl mx-auto px-4 py-5 sm:py-8">
+  <header class="flex items-baseline justify-between mb-6">
+    <div class="text-lg font-semibold tracking-tight">InterviewPro<span class="mute font-normal text-sm ml-1">AI</span></div>
+    <div id="step" class="text-xs mute"></div>
+  </header>
+  <main id="app"></main>
+</div>
+<script>
+const $=(s,r=document)=>r.querySelector(s), app=$('#app');
+const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const wc=s=>s.split(/\s+/).filter(Boolean).length, cl=n=>Math.max(0,Math.min(100,Math.round(n)));
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+const LEVELS=['Student / Intern','Junior','Mid-level','Senior'];
+const ROLES=[['Software Engineer','t'],['Frontend Engineer','t'],['Backend Engineer','t'],['DevOps / SRE','t'],['Cybersecurity Analyst','t'],['Data Scientist','d'],['Data Analyst','d'],['Machine Learning Engineer','d'],['Product Manager','p'],['Product Designer','p'],['Marketing Manager','p'],['Management Consultant','p'],['Project Manager','p'],['Investment Analyst','f'],['Financial Analyst','f'],['Accountant','f'],['Sales Executive','g'],['HR Manager','g'],['Operations Manager','g'],['Customer Success Manager','g'],['Cloud Engineer','t'],['Solutions Architect','t'],['Data Engineer','d'],['QA Engineer','t'],['Mobile Developer','t'],['Network Engineer','t'],['Database Administrator','d'],['Business Analyst','p'],['UX Researcher','p'],['Custom','x']];
+const COMPS=[['Big tech','a big tech company','bigtech'],['Fast-growing startup','a fast-growing startup','startup'],['Fintech','a fintech company','fintech'],['Consulting firm','a consulting firm','consulting'],['Investment bank','an investment bank','bank'],['Healthcare','a healthcare organization'],['E-commerce / Retail','an e-commerce company'],['Enterprise SaaS','an enterprise software company'],['Media / Entertainment','a media company'],['Government / Nonprofit','a public sector organization'],['Custom','','x']];
+const MODES=['Behavioral (STAR)','Technical / System design','Mixed'];
+const cfg={level:1,role:0,rc:'',comp:0,cc:'',mode:2,hard:false,cam:true};
+const TITLE={t:'Engineering Manager',d:'Head of Data',p:'Director of Product',f:'VP, Investments',g:'Hiring Manager',x:'Hiring Manager'};
+const PEOPLE=[{n:'Daniel Reyes',img:'interviewers/daniel.jpg',skin:'#d9a982',hair:'#2b2118',shirt:'#3b4a5a'},{n:'Priya Nair',img:'interviewers/priya.jpg',skin:'#b98460',hair:'#1b1512',shirt:'#6b5b4e',long:1},{n:'Marcus Bell',img:'interviewers/marcus.jpg',skin:'#8d5a3b',hair:'#141210',shirt:'#4a5d52'},{n:'Hannah Weiss',img:'interviewers/hannah.jpg',skin:'#f0cfb0',hair:'#7a5233',shirt:'#5a4a5f',long:1}];
+
+const BEH=['Tell me about a time you delivered something under a tight deadline.','Describe a disagreement with a teammate and how you resolved it.','Walk me through a failure and what you changed afterward.','Give an example of influencing a decision without formal authority.','Tell me about difficult feedback you received. What did you do with it?','Describe a time you had to learn something quickly to get a job done.','Tell me about a problem you took ownership of when nobody asked you to.','Give an example of working with someone whose style was very different from yours.','Describe the achievement you are proudest of and what made it hard.','Tell me about a decision you made with incomplete information.','How have you handled competing priorities from different stakeholders?','Tell me about a process you improved because it was not working.'];
+const LVL=[['What have you learned outside the classroom that prepared you for this work?','Tell me about a project where you had to teach yourself something new.'],['Tell me about a time you asked for help at exactly the right moment.','How do you handle ambiguity when your manager is unavailable?'],['Tell me about a project you owned from start to finish.','How have you mentored or unblocked teammates?'],['Tell me about a time you set direction for a team despite disagreement.','How do you decide when to delegate and when to step in?','How do you grow other leaders on your team?']];
+const ROLEQ={
+"Software Engineer":{t:["Design a URL shortening service like bit.ly. Cover the data model, scale, and failure modes.","How does a hash table work, and what happens when two keys collide?","How would you check whether a binary search tree is valid?","How would you set up a CI/CD pipeline you trust for a production service?","What is the difference between a process and a thread, and when would you choose each?","How would you design a rate limiter for a public API?","What trade-offs do you weigh when choosing between SQL and NoSQL for a new service?"],b:["Tell me about a time you disagreed with a technical decision your team made.","Describe working with a difficult colleague on an engineering project.","Tell me about a bug you shipped to production and what you did about it."]},
+"Frontend Engineer":{t:["How would you diagnose and fix a page that feels slow on a mid-range phone?","Walk me through how a browser turns HTML into pixels on screen.","How do you manage state in a large React or similar application?","How would you make a complex form accessible to screen reader users?","What is the difference between debouncing and throttling, and where would you use each?","How would you structure a design system used by ten teams?"],b:["Tell me about a time you disagreed with a designer about what was feasible.","Describe a UI bug that only appeared for some users and how you tracked it down.","Tell me about a time you improved performance and how you measured it."]},
+"Backend Engineer":{t:["How would you design an idempotent API for payment requests?","Explain database indexing and when an index can hurt performance.","How would you handle a message queue that keeps backing up?","Walk me through migrating a large table without downtime.","How would you cache data safely across several services?","How do you handle authentication and authorization between internal services?"],b:["Tell me about an outage caused by code you wrote or reviewed.","Describe a time you pushed back on an unrealistic API deadline.","Tell me about a system you inherited and how you made it safer to change."]},
+"DevOps / SRE":{t:["Walk me through how you would respond to a 3 a.m. alert for elevated error rates.","How do you define service level objectives and error budgets?","Explain blue-green versus canary deployments and when you would use each.","How would you manage secrets and configuration across environments?","How would you design monitoring for a microservice architecture?","How would you cut the cost of an over-provisioned cloud environment?"],b:["Tell me about an outage you were part of and what changed afterward.","Describe automating a manual process that saved your team real time.","Tell me about pushing back on a risky release."]},
+"Cybersecurity Analyst":{t:["How would you investigate a suspected phishing compromise of an employee account?","Explain symmetric versus asymmetric encryption and where each is used.","How would you build a threat model for a new web application?","Which OWASP Top 10 risk do you see most often, and how do you prevent it?","How would you prioritize hundreds of vulnerabilities from a scanner?","What would you do in the first hour of a ransomware incident?"],b:["Tell me about convincing a team to fix a security issue they wanted to ignore.","Describe a security incident you handled from detection to review.","Tell me about explaining a technical risk to non-technical leaders."]},
+"Data Scientist":{t:["How would you decide whether an A/B test result is statistically and practically significant?","Walk me through building a churn model, from problem framing to deployment.","Explain the bias variance trade-off with a real example.","How do you handle class imbalance in a fraud detection problem?","What would you do if 30 percent of a key feature were missing?","How would you explain a model's prediction to a non-technical stakeholder?"],b:["Tell me about an analysis that changed a business decision.","Describe a model that failed in production and what you learned.","Tell me about disagreeing with a stakeholder over what the data showed."]},
+"Data Analyst":{t:["A key metric dropped 10 percent overnight. How do you investigate?","Explain inner, left, and full joins and a mistake people make with them.","How would you design a dashboard for a head of sales?","How do you validate data quality before sharing a report?","What is the difference between correlation and causation? Give a business example.","How would you find the top customer by revenue in each region using SQL?"],b:["Tell me about a time your analysis was challenged.","Describe turning messy data into a clear recommendation.","Tell me about a report nobody used and what you learned."]},
+"Machine Learning Engineer":{t:["How would you design a real-time recommendation system?","How do you monitor a production model for drift?","How would you reduce inference latency for a large model?","How do you build a reliable training and evaluation pipeline?","How would you choose between fine-tuning, retrieval, and prompting for a language model feature?","What are the trade-offs between precision and recall in a spam filter?"],b:["Tell me about shipping a model to production for the first time.","Describe a time a model behaved unexpectedly after launch.","Tell me about aligning researchers and engineers on a design."]},
+"Product Manager":{t:["Pick a product you love and tell me how you would improve it.","Conversion on our mobile checkout dropped 5 percent. How would you diagnose it?","What metric would tell you to kill a feature 45 days after launch?","How would you prioritize ten requests with one team?","Design a feature to reduce food waste for a grocery delivery app.","How would you set the price for a new premium membership?"],b:["Tell me about an unpopular decision you made and how you handled it.","Describe influencing engineers and designers without authority.","Tell me about a launch that missed its target."]},
+"Product Designer":{t:["Walk me through your process on a project, from research to launch.","How would you redesign onboarding for a banking app aimed at first-time users?","How do you decide when a design is done?","How do you test a design with real users on a small budget?","How do you respond when engineers say a design is too costly to build?","How would you make a data-heavy dashboard easier to scan?"],b:["Tell me about defending a design decision to a skeptical stakeholder.","Describe a design that failed in testing.","Tell me about working closely with a product manager."]},
+"Marketing Manager":{t:["How would you build a go-to-market plan for a new product on a small budget?","Which metrics do you use to judge a campaign, and which do you ignore?","A campaign gets clicks but no conversions. What do you check?","How do you segment an audience and choose channels?","How would you split a quarterly budget across paid, content, and email?","How would you measure brand awareness?"],b:["Tell me about a campaign that missed its goal.","Describe working with a sales team that disagreed with your plan.","Tell me about a creative risk that paid off."]},
+"Management Consultant":{t:["A client's profits fell 20 percent. How would you structure the problem?","Estimate how many electric vehicle chargers a mid-sized city needs.","Should a regional retailer enter a new country? Walk me through your framework.","How would you help a client cut costs by 15 percent without hurting quality?","How would you size the market for a new meal delivery service?","How would you present a difficult recommendation to a skeptical executive?"],b:["Tell me about leading a team without formal authority.","Describe turning messy information into a clear recommendation.","Tell me about a client who disagreed with your conclusion."]},
+"Project Manager":{t:["How do you build a project plan and know it is realistic?","A key dependency is two weeks late. What do you do?","How do you handle scope creep from a senior stakeholder?","How do you report status honestly when a project is at risk?","How do you choose between waterfall and agile for a project?","How would you run a post-mortem after a failed launch?"],b:["Tell me about a project that went off track and how you recovered it.","Describe managing conflict between two team members.","Tell me about saying no to a stakeholder."]},
+"Investment Analyst":{t:["Walk me through a DCF.","How do you decide between a DCF and comparable company analysis?","Explain enterprise value versus equity value and when you use each.","Pitch me an investment idea in two minutes, including the main risk.","How do rising interest rates affect valuation?","Walk me through how an increase in depreciation flows through the three financial statements."],b:["Why do you want to work in investing, and why now?","Tell me about working long hours with zero tolerance for errors.","Tell me about a call you got wrong and what you learned."]},
+"Financial Analyst":{t:["How would you build a forecast for a business with seasonal revenue?","Revenue is up but margins are shrinking. What questions would you ask?","Explain the three financial statements and how they connect.","How do you check a financial model for errors before it goes to leadership?","Explain variance analysis and how you would present it.","How would you decide whether a company should buy or lease a machine?"],b:["Tell me about a forecast you got badly wrong.","Describe explaining numbers to a non-finance executive.","Tell me about catching an error before it mattered."]},
+"Accountant":{t:["Walk me through a transaction from invoice to financial statements.","What is the difference between accrual and cash accounting?","How would you handle a month-end close that is running late?","How would you investigate a reconciliation that is off by a small amount?","How do you assess whether revenue is recognized correctly?","Which internal controls help prevent fraud in accounts payable?"],b:["Tell me about finding a mistake late in a close.","Describe working under tight deadlines during audit season.","Tell me about pushing back when someone wanted to bend a rule."]},
+"Sales Executive":{t:["Walk me through how you run a discovery call.","How do you build a pipeline from scratch in a new territory?","A prospect says your price is too high. What do you do?","How do you qualify a deal and decide when to walk away?","How do you forecast your quarter, and what do you do when you are behind?","How would you re-engage a deal that has gone quiet for a month?"],b:["Tell me about your biggest deal and how you won it.","Describe losing a deal you expected to win.","Tell me about working with a difficult customer."]},
+"HR Manager":{t:["How would you handle an employee complaint about a manager?","How would you design a structured hiring process?","How do you approach performance improvement for an underperforming employee?","How would you reduce turnover on a team that keeps losing people?","How do you stay compliant with employment law across regions?","How would you run a fair compensation review?"],b:["Tell me about a sensitive situation you handled confidentially.","Describe influencing a leader who resisted a people policy.","Tell me about a difficult termination and how you handled it."]},
+"Operations Manager":{t:["How would you find and fix the bottleneck in a slow process?","Which metrics would you track to run a fulfillment operation?","How would you cut costs by 10 percent without hurting service?","Demand suddenly doubles. How do you respond?","How do you choose between two suppliers?","How would you build a process that scales from 10 to 100 orders a day?"],b:["Tell me about improving a process and the results you got.","Describe managing a team through a major change.","Tell me about recovering from a supply or service failure."]},
+"Customer Success Manager":{t:["A key customer says they plan to cancel. What do you do?","How do you measure customer health?","How do you onboard a new enterprise customer in the first 30 days?","How do you prioritize accounts when you have too many?","How would you turn a support escalation into an expansion opportunity?","How do you respond to a customer asking for a feature that is not on the roadmap?"],b:["Tell me about saving an at-risk account.","Describe delivering bad news to a customer.","Tell me about working with product and engineering to fix a customer issue."]}
+};
+Object.assign(ROLEQ,{
+"Cloud Engineer":{t:["Design a highly available web application on AWS that survives the loss of an entire availability zone. Which services would you use?","Explain the difference between a security group and a network ACL, and when each one applies.","How would you structure Terraform code and remote state for ten engineers across dev, staging, and production?","A Kubernetes pod is stuck in CrashLoopBackOff. Walk me through how you would debug it.","How would you design a VPC with public and private subnets, and how does a private instance reach the internet?","Your monthly cloud bill jumped 40 percent. How do you find the cause and bring it down?","How do you implement least-privilege IAM for a microservice that reads from object storage and writes to a queue?","Explain blue-green versus canary deployments on a container platform, and how you would roll back.","How would you design disaster recovery for a database with a recovery point objective of five minutes?","How would you configure autoscaling for an unpredictable workload, and what can go wrong?","How would you migrate an on-premises application to the cloud with minimal downtime?","Which alerts would page you at night on a cloud platform, and which would you deliberately not page on?"],b:["Tell me about a cloud outage you handled and what changed afterward.","Describe reducing cloud cost or improving reliability, and how you measured it.","Tell me about convincing a team to adopt infrastructure as code.","Tell me about a security misconfiguration you found and fixed."]},
+"Solutions Architect":{t:["Walk me through a multi-region architecture for a customer who needs 99.99 percent availability.","A customer wants to move a legacy monolith to the cloud. How do you choose between rehost, refactor, and rebuild?","How do you explain the cost and risk trade-offs of an architecture to a non-technical executive?","How would you design a secure data pipeline for regulated customer data?","How do you decide between managed services and running the software yourself?","A proof of concept is failing in front of a customer. What do you do?"],b:["Tell me about earning technical trust with a skeptical customer.","Describe a design you changed after new constraints appeared.","Tell me about working with sales on a deal with unrealistic expectations."]},
+"Data Engineer":{t:["Design a pipeline that ingests ten million events a day and makes them queryable within minutes.","How do you make a pipeline idempotent so a rerun does not duplicate data?","What is the difference between a data warehouse and a data lake, and when would you use each?","How do you detect and handle late or bad data in a streaming pipeline?","How would you partition a very large table for fast queries and low cost?","Walk me through backfilling a year of historical data safely."],b:["Tell me about a data incident that reached the business and how you fixed it.","Describe working with analysts whose requirements kept changing.","Tell me about speeding up a slow pipeline and the impact."]},
+"QA Engineer":{t:["How do you decide what to automate and what to test manually?","Walk me through your test plan for a new checkout feature.","How do you handle flaky tests?","A critical bug is found one day before release. What do you do?","How do you balance unit, integration, and end-to-end tests?","How would you test an API that has no documentation?"],b:["Tell me about a bug you found that others missed.","Describe pushing back on a release you thought was risky.","Tell me about disagreeing with a developer over bug severity."]},
+"Mobile Developer":{t:["How do you handle offline mode and data sync in a mobile app?","How would you find and fix a memory leak in an iOS or Android app?","How do you improve app startup time and battery usage?","How do you manage releases when app store review can take days?","How would you architect a large mobile app for testability?","How do you make push notifications reliable across devices?"],b:["Tell me about an app release that went wrong.","Describe reducing crash rates or improving ratings.","Tell me about working with a designer on platform-specific behavior."]},
+"Network Engineer":{t:["Walk me through what happens when you type a URL into a browser, from DNS to the TCP handshake.","How does BGP work, and how would you troubleshoot a route leak?","What is the difference between a switch, a router, and a firewall?","How would you design a network for a new office with guest and secure segments?","A site loses connectivity. How do you isolate the fault?","How do you design redundancy so one link failure does not cause an outage?"],b:["Tell me about a network outage you resolved under pressure.","Describe a change window that went wrong.","Tell me about documenting a network so others could run it."]},
+"Database Administrator":{t:["How do you find and fix a slow query in production?","How do you design backups and test restores for a critical database?","What is the difference between replication and clustering, and when do you use each?","How do you plan a zero-downtime schema change on a large table?","What do you do when a database runs out of disk space at peak?","How do you secure a database that holds sensitive customer data?"],b:["Tell me about recovering data after a failure.","Describe a change that caused a performance regression.","Tell me about working with developers who wrote inefficient queries."]},
+"Business Analyst":{t:["How do you gather requirements from stakeholders who disagree?","Walk me through documenting a process before improving it.","How do you prioritize requirements when the budget is fixed?","A stakeholder keeps changing requirements mid-project. What do you do?","How would you validate that a delivered feature meets the business need?","Which SQL or Excel techniques do you use to analyse a business problem?"],b:["Tell me about a requirement you got wrong.","Describe translating a technical constraint for a business audience.","Tell me about a process improvement and its measured result."]},
+"UX Researcher":{t:["How do you choose between a survey, interviews, and usability testing?","How many participants do you need, and how do you justify that number?","Walk me through a study from research question to recommendation.","How do you handle stakeholders who ignore your findings?","How do you avoid leading questions in an interview?","How would you research a feature for users you cannot easily reach?"],b:["Tell me about research that changed a product decision.","Describe a study that went wrong.","Tell me about presenting uncomfortable findings."]}
+});
+const KWR={"Cloud Engineer":['aws','azure','gcp','terraform','kubernetes','docker','ci/cd','iam','vpc','monitoring','linux','python','infrastructure as code','high availability','cost optimization','cloudformation','networking','security'],
+"DevOps / SRE":['kubernetes','docker','terraform','ci/cd','monitoring','incident','slo','aws','linux','python','automation','observability','jenkins','git']};
+const ALIAS=[[/solutions? architect|cloud architect|enterprise architect/i,'Solutions Architect'],[/cloud|aws|azure|gcp|infrastructure|platform eng/i,'Cloud Engineer'],[/devops|sre|reliability/i,'DevOps / SRE'],[/secur|cyber|infosec/i,'Cybersecurity Analyst'],[/data engineer|etl|analytics engineer/i,'Data Engineer'],[/machine learning|\bml\b|\bai\b/i,'Machine Learning Engineer'],[/data scien/i,'Data Scientist'],[/data analy|bi analyst/i,'Data Analyst'],[/\bqa\b|quality|test/i,'QA Engineer'],[/mobile|ios|android/i,'Mobile Developer'],[/front.?end|\bui dev/i,'Frontend Engineer'],[/back.?end|\bapi\b/i,'Backend Engineer'],[/network/i,'Network Engineer'],[/database|dba/i,'Database Administrator'],[/software|developer|full.?stack|programmer/i,'Software Engineer'],[/ux research|user research/i,'UX Researcher'],[/designer|\bux\b|\bui\b/i,'Product Designer'],[/product (manager|owner)/i,'Product Manager'],[/business analyst/i,'Business Analyst'],[/marketing|growth|seo/i,'Marketing Manager'],[/consult/i,'Management Consultant'],[/project|program manag/i,'Project Manager'],[/invest|equity|portfolio|bank/i,'Investment Analyst'],[/financ|fp&a/i,'Financial Analyst'],[/account|audit|tax/i,'Accountant'],[/sales|business development|account exec/i,'Sales Executive'],[/recruit|\bhr\b|talent|people/i,'HR Manager'],[/operation|supply|logistic/i,'Operations Manager'],[/customer (success|support)|support eng/i,'Customer Success Manager']];
+const bankKey=n=>ROLEQ[n]?n:(ALIAS.find(a=>a[0].test(n))||[])[1]||null;
+const bankFor=n=>ROLEQ[bankKey(n)]||{t:GEN,b:BEH};
+const TOOLQ={python:'How would you structure a Python service or automation script so it is testable, retries safely on failure, and is easy to hand over?',java:'How would you tune a Java service running in containers, including memory limits and garbage collection?',javascript:'Explain the JavaScript event loop and how a slow call can block everything else.',typescript:'What problems does TypeScript solve in a large codebase, and where does it get in your way?',react:'How do you prevent unnecessary re-renders in a large React component tree?',sql:'How do you find and fix a slow SQL query?',postgresql:'How do you tune and back up a production PostgreSQL database?',mysql:'How do indexes and replication work in MySQL, and what problems come with read replicas?',mongodb:'How do you model data in MongoDB, and when would you avoid it?',redis:'How do you use Redis as a cache, and how do you handle stale data and eviction?',kafka:'How do you avoid duplicate processing and keep ordering with Kafka consumers?',aws:'Which AWS services would you choose for a highly available application, and how do you control its cost and security?',azure:'How do you structure Azure subscriptions, resource groups, and access control for a growing company?',gcp:'How do you choose between Compute Engine, GKE, and Cloud Run for a new service?',docker:'How do you keep Docker images small and secure, and how do you debug a container that exits immediately?',kubernetes:'How do you set resource requests and limits in Kubernetes, and what happens when they are wrong?',terraform:'How do you manage Terraform state and detect configuration drift across environments?',jenkins:'How would you design a Jenkins pipeline that builds, tests, and deploys safely without becoming a bottleneck?',git:'How do you handle a long-lived branch with heavy merge conflicts, and which branching strategy do you prefer?',graphql:'What performance problems come with GraphQL, and how do you prevent them?',pandas:'How would you clean and join two large messy datasets in pandas without running out of memory?',spark:'How do you diagnose data skew or a slow stage in a Spark job?',tensorflow:'How do you debug a model that trains well but performs poorly in production?',pytorch:'How do you speed up training and manage GPU memory in PyTorch?',tableau:'How would you design a Tableau dashboard that executives will actually use?','power bi':'How do you model data in Power BI to keep reports fast and correct?',excel:'How would you build and audit a financial model in Excel so others can trust it?',snowflake:'How do you control cost and performance in Snowflake?',airflow:'How do you make Airflow pipelines idempotent and handle failures and backfills?',linux:'A Linux server is slow. How do you diagnose CPU, memory, disk, and network?',salesforce:'How do you keep Salesforce data clean and reports reliable across a growing sales team?',figma:'How do you structure Figma components and hand off designs so engineering builds them accurately?',selenium:'How do you keep Selenium tests stable and fast?'};
+const GEN=['What are the core responsibilities of a {r}, and where do new hires struggle most?','How would you approach your first 90 days as a {r}?','Describe a complex problem in {r} work and how you would break it down.','Which skills matter most for a {r} at {c}, and how do you measure up?','How do you prioritize when everything on your plate as a {r} feels urgent?','What is the hardest practical challenge you have faced in {r} work?','How do you know whether you are doing a good job as a {r}?'];
+const CQ={bigtech:['How do you design for a scale where a small change affects millions of people?','Tell me about influencing across many teams in a large organization.','How do you stay effective with heavy process and ambiguity?'],startup:['Tell me about shipping something with almost no resources.','How would you cope with wearing three hats when the company pivots?','What would you do in your first 30 days if nobody gave you a roadmap?'],fintech:['How do you balance shipping speed with regulatory and security demands?','What does trust mean for a product that handles people\'s money?','Tell me about a time accuracy mattered more than speed.'],consulting:['A client\'s profits fell 20 percent. How would you structure the problem?','Tell me about turning messy information into a clear recommendation.','How do you handle a client who disagrees with your conclusion?'],bank:['Walk me through a recent market event and how it affects a sector you follow.','Tell me about working under intense pressure with zero tolerance for errors.','How do you check your work when the stakes are high?']};
+const LENS=['How would the day-to-day work of a {r} differ at {c} compared with other kinds of employers?','What is the hardest challenge a {r} faces at {c}, and how would you handle it?','Which parts of your {r} experience matter most at {c}, and what would you need to learn?','Why {c}, and what would you want to have accomplished as a {r} after one year?'];
+
+let merr='',CUSTOM=null;
+let S=null,A=null,rec=null,timer=null,M=null,raf=0,faceT=null,F={n:0,ok:0};
+const role=()=>cfg.role===ROLES.length-1?(cfg.rc.trim()||'Professional'):ROLES[cfg.role][0];
+const cat=()=>ROLES[cfg.role][1]==='x'?'g':ROLES[cfg.role][1];
+const compName=()=>cfg.comp===COMPS.length-1?(cfg.cc.trim()||'your target company'):COMPS[cfg.comp][1];
+const compLabel=()=>cfg.comp===COMPS.length-1?compName():COMPS[cfg.comp][0];
+
+const RCATS=['Engineering','Data','Product','Business','Finance'];
+const RC=['Engineering','Engineering','Engineering','Engineering','Engineering','Data','Data','Data','Product','Product','Business','Business','Business','Finance','Finance','Finance','Business','Business','Business','Business','Engineering','Engineering','Data','Engineering','Engineering','Engineering','Data','Business','Product'];
+let rcat='Engineering',rq='';const RESUME={text:''};
+const KW={Engineering:['python','javascript','typescript','react','node','sql','api','aws','docker','kubernetes','git','ci/cd','testing','microservices','system design','linux','rest','agile','cloud'],
+Data:['python','sql','pandas','statistics','machine learning','tensorflow','pytorch','a/b test','tableau','power bi','spark','etl','regression','visualization','experiment','model','dashboard','forecasting'],
+Product:['roadmap','user research','a/b test','metrics','kpi','stakeholder','prioritization','agile','launch','figma','sql','funnel','retention','discovery','strategy','okr','wireframe','prototype'],
+Business:['stakeholder','pipeline','quota','crm','forecast','budget','campaign','strategy','client','revenue','process improvement','project plan','kpi','negotiation','onboarding','churn','analysis','presentation'],
+Finance:['valuation','dcf','financial model','excel','forecast','gaap','ifrs','audit','reconciliation','p&l','variance','budget','equity','m&a','lbo','bloomberg','reporting','compliance']};
+const TOOLS=['python','java','javascript','typescript','react','angular','vue','node.js','django','flask','spring','sql','postgresql','mysql','mongodb','redis','kafka','aws','azure','gcp','docker','kubernetes','terraform','jenkins','git','graphql','pandas','numpy','spark','tensorflow','pytorch','scikit-learn','tableau','power bi','excel','looker','figma','jira','salesforce','hubspot','sap','quickbooks','bloomberg','snowflake','airflow','dbt','linux','selenium','c++','swift','kotlin'];
+const VERBS=/^(led|built|designed|developed|launched|created|implemented|improved|reduced|increased|managed|delivered|optimized|automated|architected|analyzed|owned|drove|negotiated|scaled|shipped|migrated|established|resolved|generated|streamlined|mentored|founded|won|closed|supported|contributed)\b/i;
+const WEAK=/^(responsible for|worked on|helped|assisted|involved in|duties included|participated in|tasked with|in charge of)\b/i;
+const WMAP={'responsible for':'Led','worked on':'Delivered','helped':'Drove','assisted':'Supported','involved in':'Owned','duties included':'Delivered','participated in':'Contributed to','tasked with':'Owned','in charge of':'Led'};
+const TN={aws:'AWS',gcp:'GCP',sql:'SQL',dbt:'dbt',sap:'SAP',git:'Git',javascript:'JavaScript',typescript:'TypeScript',postgresql:'PostgreSQL',mysql:'MySQL',mongodb:'MongoDB',tensorflow:'TensorFlow',pytorch:'PyTorch',graphql:'GraphQL',hubspot:'HubSpot','power bi':'Power BI','node.js':'Node.js','scikit-learn':'scikit-learn',quickbooks:'QuickBooks',dcf:'DCF',crm:'CRM',kpi:'KPI',okr:'OKR',etl:'ETL','ci/cd':'CI/CD',api:'API',lbo:'LBO','m&a':'M&A',gaap:'GAAP',ifrs:'IFRS','p&l':'P&L','a/b test':'A/B testing'};
+const nice=t=>TN[t]||t.replace(/^./,c=>c.toUpperCase());
+const trim=(t,n)=>{t=t.replace(/\s+/g,' ').trim();if(t.length<=n)return t.replace(/[.;,]$/,'');const c=t.slice(0,n);return c.slice(0,c.lastIndexOf(' ')).replace(/[.;,]$/,'')};
+function analyze(text){
+  const low=text.toLowerCase(),words=wc(text),lines=text.split(/\n+/).map(l=>l.trim()).filter(Boolean);
+  const bk=bankKey(role()),bi=ROLES.findIndex(r=>r[0]===bk),kws=KWR[bk]||(bi>=0?KW[RC[bi]]:KW.Business.concat(role().toLowerCase().split(/\s+/).filter(w=>w.length>3)));
+  const has=k=>new RegExp('(^|[^a-z])'+k.replace(/[.*+?^${}()|[\]\\\/]/g,'\\$&')+'([^a-z]|$)').test(low);
+  const mk=lines.filter(l=>/^[-•*▪·]/.test(l)),bl=(mk.length>2?mk:lines.filter(l=>l.length>45&&l.length<300&&(VERBS.test(l)||WEAK.test(l)))).map(l=>l.replace(/^[-•*▪·]\s*/,'')).filter(l=>l.length<300);
+  const metricB=bl.filter(l=>/\d/.test(l)),verbed=bl.filter(l=>VERBS.test(l)&&!WEAK.test(l)),weak=bl.filter(l=>WEAK.test(l));
+  const matched=kws.filter(has),missing=kws.filter(k=>!has(k)).slice(0,6);
+  const secs=[['experience',/experience|employment|work history/],['education',/education|degree|university/],['skills',/skills|technologies|tools/],['projects',/projects|summary|profile/]].filter(x=>lines.some(l=>l.length<40&&x[1].test(l.toLowerCase())));
+  const kwS=Math.round(Math.min(1,matched.length/Math.min(10,kws.length))*40),imp=Math.round(Math.min(1,metricB.length/5)*20),vs=bl.length?Math.round(verbed.length/bl.length*15):0,st=Math.round(secs.length/4*10);
+  const ln=Math.round(words>=300&&words<=800?10:words<300?words/300*10:Math.max(0,10-(words-800)/100)),tt=low.includes(role().toLowerCase().split(' ')[0])?5:0;
+  const tips=[];
+  if(missing.length)tips.push(`Add these role keywords where they are true for you: ${missing.map(nice).join(', ')}.`);
+  if(metricB.length<5)tips.push(`Only ${metricB.length} bullet${metricB.length===1?'':'s'} include numbers. Add a measurable result to at least five.`);
+  if(weak.length)tips.push(`${weak.length} bullet${weak.length>1?'s':''} open with weak phrases such as "responsible for". Start each with a strong action verb.`);
+  ['experience','education','skills'].filter(n=>!secs.some(x=>x[0]===n)).forEach(n=>tips.push(`Add a clearly labelled ${n} section.`));
+  if(words<300)tips.push('The resume is short. Add detail on scope, tools and outcomes for each role.');
+  if(words>800)tips.push('The resume is long. Trim to the most relevant one page or two.');
+  if(!tt)tips.push(`Mention your target title (${role()}) in a headline or summary line.`);
+  if(!tips.length)tips.push('Strong match. Keep bullets specific and lead with results.');
+  const cand=weak.concat(bl.filter(l=>!/\d/.test(l)&&!WEAK.test(l))).slice(0,4);
+  const rewrites=cand.map(b=>{let t=b.replace(WEAK,m=>WMAP[m.toLowerCase()]).replace(/[.;]$/,'');t=t[0].toUpperCase()+t.slice(1);if(!VERBS.test(t))t='Delivered '+t.charAt(0).toLowerCase()+t.slice(1);
+    return [b,/\d/.test(t)?t:t+', improving [metric] by [X%] for [N users or teams]']});
+  const exps=lines.filter(l=>l.length<110&&/(19|20)\d{2}\s*(-|–|to)\s*((19|20)\d{2}|present|current)/i.test(l)).map(l=>l.replace(/[|•]?\s*\(?(?:[A-Za-z]{3,9}\.?\s*)?(?:19|20)\d{2}\s*(?:-|–|to)\s*(?:(?:[A-Za-z]{3,9}\.?\s*)?(?:19|20)\d{2}|present|current).*$/i,'').replace(/[|,\-–\s]+$/,'')).filter(x=>x.length>4&&x.length<70&&!/university|college|school|bachelor|master|degree|^b\.?s\b|^m\.?s\b/i.test(x));
+  return {score:kwS+imp+vs+st+ln+tt,parts:[['Role keywords',kwS,40],['Quantified impact',imp,20],['Action verbs',vs,15],['Structure',st,10],['Length',ln,10],['Target title',tt,5]],matched,missing,tips,rewrites,
+    tools:TOOLS.filter(has),projects:verbed.filter(l=>l.length>40&&!/\d/.test(l)).map(l=>trim(l,95)),metricB:metricB.map(l=>trim(l,95)),exps};
+}
+function resumeQs(){
+  if(wc(RESUME.text||'')<30)return[];
+  const a=analyze(RESUME.text),sh=x=>x.map(y=>[Math.random(),y]).sort((p,q)=>p[0]-q[0]).map(y=>y[1]);
+  const rq=bankFor(role()),bt=rq.t.concat(rq.b).join(' ').toLowerCase(),rel=a.tools.filter(t=>bt.includes(t)),tl=rel.length>=2?rel:a.tools;
+  const k={tool:tl.slice(0,5).map(t=>({q:TOOLQ[t]||`You used ${nice(t)} in your ${role()} work. What is a real technical problem it caused or solved, and how did you diagnose it?`,t:'t'})),
+   proj:a.projects.slice(0,4).map(p=>({q:`Your resume says: "${p}". Walk me through your role, the key decisions you made, and the result.`,t:'b'})),
+   metric:a.metricB.slice(0,3).map(p=>({q:`You wrote: "${p}". How did you measure that result, and what would you do differently now?`,t:'b'})),
+   exp:a.exps.slice(0,3).map(p=>({q:`Tell me about your time as ${p}. What was the hardest problem you owned there, and how did you solve it?`,t:'b'})),
+   gap:a.missing.slice(0,2).map(m=>({q:`This role usually calls for ${nice(m)}, and I did not see it on your resume. Where have you used it, or how would you get up to speed?`,t:'c'}))};
+  const kinds=sh(Object.keys(k).filter(x=>k[x].length));if(!kinds.length)return[];
+  const out=[];for(let i=0;out.length<4&&i<20;i++){const arr=k[kinds[i%kinds.length]];if(arr.length)out.push({...arr.splice(Math.floor(Math.random()*arr.length),1)[0],r:1})}
+  return out;
+}
+const loadJS=u=>new Promise((res,rej)=>{const e=document.createElement('script');e.src=u;e.onload=res;e.onerror=rej;document.head.appendChild(e)});
+async function readFile(f){
+  const n=f.name.toLowerCase();
+  if(/\.(txt|md)$/.test(n))return f.text();
+  if(n.endsWith('.docx')){if(!window.mammoth)await loadJS('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js');return (await mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()})).value}
+  if(n.endsWith('.pdf')){if(!window.pdfjsLib){await loadJS('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'}
+    const d=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;let t='';
+    for(let i=1;i<=d.numPages;i++){const c=await (await d.getPage(i)).getTextContent();let ly=null;c.items.forEach(it=>{const y=it.transform[5];t+=(ly!==null&&Math.abs(y-ly)>3?'\n':' ')+it.str;ly=y});t+='\n'}
+    if(t.trim().length<30)throw new Error('empty');return t}
+  throw new Error('type');
+}
+function roleBlock(){return `<div class="label">Target role</div>
+  <div id="rcats" class="flex flex-wrap gap-1 p-1 rounded-lg mb-2" style="background:var(--soft)">${RCATS.map(c=>`<button class="chip ${c===rcat&&!rq?'on':''}" style="border-color:transparent" data-c="${c}">${c}</button>`).join('')}</div>
+  <input id="rsearch" class="inp" style="margin-top:0" placeholder="Search all roles" value="${esc(rq)}">
+  <div id="roles" class="flex flex-wrap gap-2 mt-3"></div><div id="rcust"></div><div id="rsel" class="text-xs mute mt-2"></div>`}
+function roles(){
+  const q=rq.trim().toLowerCase(),last=ROLES.length-1,list=ROLES.map((r,i)=>[r[0],i]).filter(([n,i])=>i<last&&(q?n.toLowerCase().includes(q):RC[i]===rcat));
+  $('#roles').innerHTML=list.map(([n,i])=>`<button class="chip ${cfg.role===i?'on':''}" data-r="${i}">${n}</button>`).join('')+`<button class="chip ${cfg.role===last?'on':''}" data-r="${last}">Custom</button>`+(!list.length?'<span class="mute text-sm">No match. Try Custom.</span>':'');
+  $('#rcust').innerHTML=cfg.role===last?`<input id="custr" class="inp" maxlength="60" placeholder="Enter your role, for example UX Researcher" value="${esc(cfg.rc)}">`:'';
+  $('#rsel').textContent='Selected: '+role();
+  const c=$('#custr');if(c)c.oninput=e=>{cfg.rc=e.target.value;$('#rsel').textContent='Selected: '+role()};
+  $('#roles').querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{cfg.role=+b.dataset.r;roles();showResume();if(cfg.role===last&&$('#custr'))$('#custr').focus()});
+}
+function resumeCard(){return `<div class="label">Resume (optional)</div><div class="rounded-xl border p-4" style="border-color:var(--line)">
+  <p class="mute text-sm mb-2">Upload a PDF, Word or text file, or paste your resume. It is analysed in your browser and not uploaded. Your questions will then reference your projects and tools.</p>
+  <textarea id="rtxt" rows="5" class="inp" style="margin-top:0" placeholder="Paste your resume text here">${esc(RESUME.text)}</textarea>
+  <div class="flex flex-wrap gap-2 mt-2 items-center"><label class="chip">Upload file<input id="rfile" type="file" accept=".pdf,.docx,.txt,.md" class="hidden"></label><button id="rgo" class="chip on">Analyze resume</button><span id="rmsg" class="text-xs mute"></span></div>
+  <div id="rres"></div></div>`}
+function showResume(){
+  const el=$('#rres');if(!el)return;
+  if(wc(RESUME.text||'')<30){el.innerHTML=RESUME.text?'<p class="bad text-sm mt-3">Add more text so the resume can be analysed.</p>':'';return}
+  const a=analyze(RESUME.text);
+  el.innerHTML=`<div class="mt-4 pt-4 border-t" style="border-color:var(--line)"><div class="flex items-baseline justify-between"><h3>Resume match for ${esc(role())}</h3><b class="text-2xl">${a.score}<span class="mute text-sm font-normal">/100</span></b></div>
+  <div class="track mt-2"><i style="width:${a.score}%"></i></div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 mt-3">${a.parts.map(([n,v,m])=>`<div><div class="flex justify-between text-xs"><span>${n}</span><span class="mute">${v}/${m}</span></div><div class="track mt-1"><i style="width:${v/m*100}%"></i></div></div>`).join('')}</div>
+  <h4>Role keywords</h4><div class="flex flex-wrap gap-1 mt-1">${a.matched.map(k=>`<span class="chip on" style="padding:.1rem .6rem;font-size:.75rem">${esc(nice(k))}</span>`).join('')}${a.missing.map(k=>`<span class="chip" style="padding:.1rem .6rem;font-size:.75rem;color:var(--bad)">missing: ${esc(nice(k))}</span>`).join('')}</div>
+  <h4>Improvements</h4>${ul(a.tips)}
+  ${a.rewrites.length?'<h4>Suggested rewrites</h4>'+a.rewrites.map(([o,n])=>`<div class="text-sm rounded-lg p-3 mb-2" style="background:var(--soft)"><div class="mute" style="text-decoration:line-through">${esc(o)}</div><div class="mt-1">${esc(n)}</div></div>`).join('')+'<p class="text-xs mute">Replace bracketed placeholders with your real numbers. Do not invent figures.</p>':''}
+  <p class="text-xs mute mt-3">Scored locally with rule-based checks for keywords, impact, action verbs, structure and length.</p></div>`;
+}
+/* ---------- Setup ---------- */
+function chips(key,list,title,custom){
+  const last=list.length-1,isC=custom&&cfg[key]===last;
+  return `<div class="label">${title}</div><div class="flex flex-wrap gap-2">${list.map((o,i)=>`<button class="chip ${cfg[key]===i?'on':''}" data-k="${key}" data-i="${i}">${typeof o==='string'?o:o[0]}</button>`).join('')}</div>
+  ${isC?`<input id="cust" class="inp" maxlength="60" placeholder="${key==='role'?'Enter your role, for example UX Researcher':'Enter a company, for example Stripe'}" value="${esc(key==='role'?cfg.rc:cfg.cc)}">`:''}`;
+}
+function setup(){
+  stop();S=null;$('#step').textContent='Setup';if(cfg.role<ROLES.length-1)rcat=RC[cfg.role];
+  app.innerHTML=`<section class="fade card p-5 sm:p-7">
+  <h1 class="text-2xl sm:text-3xl">Build your interview</h1>
+  <p class="mute mt-1">Choose your target and we will tailor the interviewer and the questions.</p>
+  ${!SR?'<p class="bad text-sm mt-3">Voice answers need Chrome or Edge. Other browsers fall back to typing.</p>':''}
+  ${chips('level',LEVELS,'Experience level')}${roleBlock()}${chips('comp',COMPS,'Target company',1)}${chips('mode',MODES,'Interview focus')}${resumeCard()}
+  <label class="flex items-center justify-between mt-5 p-4 rounded-xl border" style="border-color:var(--line)">
+    <span><b class="font-medium">Hardcore pressure mode</b><br><span class="mute text-sm">Half the answer time and a tense visual frame.</span></span>
+    <input id="hard" type="checkbox" class="w-5 h-5" ${cfg.hard?'checked':''}></label>
+  <button id="go" class="btn mt-6">Generate custom interview plan</button></section>`;
+  app.querySelectorAll('.chip[data-k]').forEach(b=>b.onclick=()=>{cfg[b.dataset.k]=+b.dataset.i;setup();const c=$('#cust');c&&c.focus()});
+  const c=$('#cust');if(c)c.oninput=e=>cfg.cc=e.target.value;
+  $('#hard').onchange=e=>cfg.hard=e.target.checked;
+  app.querySelectorAll('#rcats [data-c]').forEach(b=>b.onclick=()=>{rcat=b.dataset.c;rq='';$('#rsearch').value='';app.querySelectorAll('#rcats .chip').forEach(x=>x.classList.toggle('on',x.dataset.c===rcat));roles()});
+  $('#rsearch').oninput=e=>{rq=e.target.value;app.querySelectorAll('#rcats .chip').forEach(x=>x.classList.toggle('on',!rq&&x.dataset.c===rcat));roles()};
+  $('#rtxt').oninput=e=>RESUME.text=e.target.value;
+  $('#rfile').onchange=async e=>{const f=e.target.files[0];if(!f)return;$('#rmsg').textContent='Reading file...';
+    try{RESUME.text=(await readFile(f)).trim();$('#rtxt').value=RESUME.text;$('#rmsg').textContent='';showResume()}catch(err){$('#rmsg').textContent='Could not read that file here. Paste the text instead.'}};
+  $('#rgo').onclick=showResume;roles();if(RESUME.text)showResume();
+  $('#go').onclick=()=>{
+    if(cfg.role===ROLES.length-1&&!cfg.rc.trim()||cfg.comp===COMPS.length-1&&!cfg.cc.trim()){const c=$('#custr')||$('#cust');c&&c.focus();return}
+    $('#go').textContent='Building your plan...';$('#go').disabled=true;setTimeout(intro,700)};
+}
+
+/* ---------- Plan ---------- */
+function plan(){
+  const r=role(),c=compName(),f=s=>s.replace(/\{r\}/g,r).replace(/\{c\}/g,c);
+  let seen;try{seen=new Set(JSON.parse(localStorage.getItem('ip_seen')||'[]'))}catch(e){seen=new Set()}
+  const sh=a=>a.map(x=>[Math.random(),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+  const mk=(a,t)=>a.map(q=>({q:f(q),t}));
+  const pick=(pool,n)=>{let fr=sh(pool.filter(x=>!seen.has(x.q)));if(fr.length<n)fr=fr.concat(sh(pool.filter(x=>seen.has(x.q))));const o=fr.slice(0,n);o.forEach(x=>seen.add(x.q));return o};
+  const rq=bankFor(role()),rb=mk(rq.b,'b'),rt=mk(rq.t,'t'),lv=mk(LVL[cfg.level],'b'),gb=mk(BEH,'b');
+  const key=COMPS[cfg.comp][2],comp=mk((CQ[key]||[]).concat(LENS),'c');
+  const q=cfg.mode===0?[...pick(rb,3),...pick(lv,2),...pick(comp,2),...pick(gb,1)]:cfg.mode===1?[...pick(rt,7),...pick(comp,1)]:[...pick(rb,1),...pick(rt,5),...pick(lv,1),...pick(comp,1)];
+  try{localStorage.setItem('ip_seen',JSON.stringify([...seen].slice(-150)))}catch(e){}
+  const rqs=resumeQs();
+  return rqs.length?sh(sh(q).sort((a,b)=>(a.t==='c')-(b.t==='c')).slice(0,8-rqs.length).concat(rqs)):sh(q);
+}
+function interviewer(){
+  const p=PEOPLE[Math.floor(Math.random()*PEOPLE.length)],k=COMPS[cfg.comp][2];
+  return {...p,title:k==='consulting'?'Engagement Manager':k==='bank'?'Vice President':TITLE[ROLES[cfg.role][1]]};
+}
+function avatar(p){
+  return `<svg viewBox="0 0 200 125" preserveAspectRatio="xMidYMax slice" class="w-full h-full" id="av" style="--skin:${p.skin};--hair:${p.hair}">
+  <rect width="200" height="125" fill="#c9c6bf"/><rect y="70" width="200" height="55" fill="#b9b5ac"/>
+  ${p.long?`<path d="M58 55Q52 105 66 118L134 118Q148 105 142 55Z" fill="${p.hair}"/>`:''}
+  <path d="M22 125Q30 92 100 88Q170 92 178 125Z" fill="${p.shirt}"/>
+  <rect x="88" y="70" width="24" height="24" rx="8" fill="${p.skin}"/><path d="M84 90L100 108L116 90L108 88L100 96L92 88Z" fill="#f2f0eb"/>
+  <ellipse cx="63" cy="52" rx="4.5" ry="7" fill="${p.skin}"/><ellipse cx="137" cy="52" rx="4.5" ry="7" fill="${p.skin}"/>
+  <ellipse cx="100" cy="50" rx="36" ry="42" fill="${p.skin}"/>
+  <path d="M63 46Q60 10 100 9Q140 10 137 46Q128 26 100 26Q74 26 63 46Z" fill="${p.hair}"/>
+  <path d="M77 43Q85 39 93 43M107 43Q115 39 123 43" stroke="${p.hair}" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  <ellipse class="eye" cx="85" cy="52" rx="3.2" ry="3.6" fill="#1f1d1a"/><ellipse class="eye" cx="115" cy="52" rx="3.2" ry="3.6" fill="#1f1d1a"/>
+  <path d="M100 55Q97 66 101 68" stroke="rgba(0,0,0,.28)" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <ellipse id="mouth" cx="100" cy="78" rx="8.5" ry="1.5" fill="#7d4640"/></svg>`;
+}
+
+function portrait(p){
+  window.FB=avatar(p);
+  if(CUSTOM&&CUSTOM.url)return CUSTOM.video?`<video class="w-full h-full object-cover" src="${CUSTOM.url}" autoplay loop muted playsinline></video>`:`<img class="w-full h-full object-cover" src="${CUSTOM.url}" alt="">`;
+  return `<img class="w-full h-full object-cover" src="${p.img}" alt="${p.n}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'w-full h-full',innerHTML:window.FB}))">`;
+}
+/* ---------- Intro & start ---------- */
+function intro(){
+  const N=8;S={qs:plan(),i:0,limit:cfg.hard?60:120,res:[],iv:interviewer(),phase:'idle'};S.iv.n0=S.iv.n;if(CUSTOM&&CUSTOM.name)S.iv.n=CUSTOM.name;
+  $('#step').textContent='Ready';
+  app.innerHTML=`<section class="fade card overflow-hidden">
+    <div class="stage">${portrait(S.iv)}</div>
+    <div class="p-5 sm:p-7">
+      <h2 id="ivh" class="text-xl">${S.iv.n}, ${S.iv.title}</h2>
+      <p class="mute mt-1">Interviewing you for ${esc(role())} at ${esc(compName())}. ${N} questions, ${S.limit} seconds each, ${MODES[cfg.mode].toLowerCase()}${cfg.hard?', pressure mode on':''}.${S.qs.some(q=>q.r)?` ${S.qs.filter(q=>q.r).length} questions are based on your resume.`:''}</p>
+      <p class="text-sm mt-4">You will answer out loud. Your browser will ask for microphone access, and camera access if you enable it below. Chrome and Edge send speech to their own cloud service to create captions.</p>
+      <div class="mt-4 rounded-xl border p-4" style="border-color:var(--line)">
+        <div class="flex items-center justify-between gap-3"><div><b class="font-medium">Camera and microphone</b><div id="mstat" class="text-sm mute">Requesting access...</div></div><button id="enable" class="chip">Enable</button></div>
+        <label class="flex items-center gap-2 mt-3 text-sm"><input id="cam" type="checkbox" ${cfg.cam?'checked':''}> Use my camera (optional, shown only to you)</label>
+        <div id="mhelp" class="text-sm mt-2 bad hidden"></div></div>
+      <details class="mt-3 text-sm"><summary class="mute">Use a real person as your interviewer</summary>
+        <p class="mute mt-2">Pick a photo or short video clip of a real interviewer you have rights to use. It stays in your browser. On GitHub Pages you can also add daniel.jpg, priya.jpg, marcus.jpg and hannah.jpg to an interviewers folder next to index.html and they load automatically.</p>
+        <input id="ivf" type="file" accept="image/*,video/*" class="text-xs mt-2 block">
+        <input id="ivn" class="inp" maxlength="40" placeholder="Interviewer name (optional)" value="${esc(CUSTOM&&CUSTOM.name||'')}"></details>
+      <div class="grid grid-cols-2 gap-3 mt-5"><button id="back" class="btn2">Back</button><button id="start" class="btn">Start interview</button></div>
+    </div></section>`;
+  $('#back').onclick=setup;
+  $('#enable').onclick=async()=>{await media();mstatus()};
+  $('#cam').onchange=async e=>{cfg.cam=e.target.checked;if(M){M.getTracks().forEach(t=>t.stop());M=null}await media();mstatus()};
+  $('#ivf').onchange=e=>{const f=e.target.files[0];if(!f)return;CUSTOM={...(CUSTOM||{}),url:URL.createObjectURL(f),video:f.type.startsWith('video')};$('.stage').innerHTML=portrait(S.iv)};
+  $('#ivn').oninput=e=>{CUSTOM={...(CUSTOM||{}),name:e.target.value.trim()};S.iv.n=CUSTOM.name||S.iv.n0;$('#ivh').textContent=`${S.iv.n}, ${S.iv.title}`};
+  $('#start').onclick=async()=>{const b=$('#start');b.disabled=true;if(!M||!M.active)await media();mstatus();
+    if(!(M&&M.getAudioTracks().length)&&!S.warned){S.warned=1;b.disabled=false;b.textContent='Continue without microphone';return}
+    shell();nextQ()};
+  media().then(mstatus);
+}
+async function media(){
+  merr='';M=null;const md=navigator.mediaDevices;
+  if(!md||!md.getUserMedia){merr='nodev';return}
+  const tries=cfg.cam?[{audio:true,video:true},{audio:true}]:[{audio:true}];
+  for(const c of tries){try{M=await md.getUserMedia(c);break}catch(e){merr=merr||e.name}}
+}
+function mstatus(){
+  const m=$('#mstat'),h=$('#mhelp');if(!m)return;
+  const mic=!!(M&&M.getAudioTracks().length),cam=hasCam();
+  m.innerHTML=`Microphone <b class="${mic?'good':'bad'}">${mic?'on':'off'}</b>, camera <b class="${cam?'good':'bad'}">${cam?'on':cfg.cam?'off':'not requested'}</b>`;
+  let msg='';
+  try{if(window.top!==window&&document.permissionsPolicy&&!document.permissionsPolicy.allowsFeature('microphone'))msg='This preview is embedded in another page, which blocks the microphone and camera. Download index.html and open it in Chrome or Edge, or host it on GitHub Pages.'}catch(e){}
+  if(!msg&&merr==='nodev')msg='This page cannot reach your devices. Use Chrome, Edge or Safari on https, or open the downloaded file directly.';
+  if(!msg&&merr==='NotAllowedError')msg='Access was blocked. Click the camera or lock icon in the address bar, choose Allow, then press Enable again.';
+  if(!msg&&merr==='NotFoundError')msg='No microphone or camera was found. Connect one and press Enable again.';
+  if(!msg&&merr==='NotReadableError')msg='Another app is using your device. Close it and press Enable again.';
+  h.innerHTML=msg+'<div class="flex flex-wrap gap-2 mt-2"><button id="newtab" class="chip">Open in a new tab</button><button id="dl" class="chip">Download page</button></div>';
+  h.classList.toggle('hidden',!msg||(mic&&(!cfg.cam||cam)));
+  const src=()=>new Blob(['<!DOCTYPE html>\n'+document.documentElement.outerHTML],{type:'text/html'});
+  $('#newtab').onclick=()=>{const w=window.open(URL.createObjectURL(src()),'_blank');if(!w)m.textContent='The new tab was blocked. Use Download page instead.'};
+  $('#dl').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(src());a.download='index.html';a.click()};
+}
+const hasCam=()=>M&&M.getVideoTracks().length>0;
+function startWave(){
+  if(!M||!M.getAudioTracks().length)return;
+  try{const ac=new (window.AudioContext||window.webkitAudioContext)(),an=ac.createAnalyser();an.fftSize=64;ac.createMediaStreamSource(M).connect(an);
+    const d=new Uint8Array(an.frequencyBinCount);
+    (function f(){raf=requestAnimationFrame(f);an.getByteFrequencyData(d);document.querySelectorAll('.bar').forEach((b,i)=>b.style.height=Math.max(4,d[i]/255*40)+'px')})();
+  }catch(e){}
+}
+function startFace(){
+  let fd=null;try{if('FaceDetector' in window)fd=new FaceDetector({fastMode:true})}catch(e){}
+  S.fd=!!fd;if(!fd||!hasCam())return;
+  faceT=setInterval(async()=>{if(S.phase!=='listen')return;const v=$('#cam');
+    try{const r=await fd.detect(v);F.n++;if(r[0]){const b=r[0].boundingBox,cx=b.x+b.width/2;if(cx>v.videoWidth*.3&&cx<v.videoWidth*.7)F.ok++}}catch(e){}},800);
+}
+
+/* ---------- Live interview ---------- */
+function shell(){
+  const bars=Array.from({length:24},()=>'<div class="bar"></div>').join('');
+  $('#step').textContent='Live interview';F={n:0,ok:0};
+  app.innerHTML=`<section class="fade">
+  <div class="flex items-center justify-between text-sm mb-2"><span id="qn"></span><span id="clock" class="font-mono card px-3 py-1"></span></div>
+  <div class="track mb-4"><i id="bar" style="width:0"></i></div>
+  <div class="card overflow-hidden mb-4 ${cfg.hard?'hard':''}">
+    <div class="stage">${portrait(S.iv)}
+      <div id="rec" class="recd hidden"><b></b>Recording</div>
+      <div class="tag"><span id="nm">${S.iv.n}</span>, ${S.iv.title}</div>
+      ${hasCam()?'<video id="cam" class="pip" autoplay muted playsinline></video>':'<div class="pipoff">Camera off</div>'}
+    </div>
+    <div class="p-4"><div class="flex items-center justify-between mb-1"><span class="text-xs mute" id="status"></span><div class="wave">${bars}</div></div>
+      <p id="qt" class="text-lg font-medium leading-snug"></p></div>
+  </div>
+  <div class="flex flex-wrap gap-2 mb-3 text-xs">
+    <span class="card px-3 py-1.5" id="p1"></span><span class="card px-3 py-1.5" id="p2"></span>
+  </div>
+  <div class="card p-4 mb-4"><div class="text-xs mute mb-2">Live captions, from your voice</div>
+    ${SR?'<div id="cap" class="cap"></div>':'<textarea id="cap" class="cap" placeholder="Speech recognition is unavailable in this browser. Type your answer here."></textarea>'}</div>
+  <div class="grid grid-cols-2 gap-3"><button id="skip" class="btn2">Skip question</button><button id="sub" class="btn">Stop and submit answer</button></div></section>`;
+  if(hasCam())$('#cam').srcObject=M;
+  $('#sub').onclick=()=>next(false);$('#skip').onclick=()=>next(true);
+  startWave();startFace();pills();
+}
+function pills(){
+  const c=hasCam();
+  let a=!c?'Camera off, face framing not measured':!S.fd?'Camera on, framing analysis unsupported in this browser':F.n>3?`Face centered ${Math.round(F.ok/F.n*100)}% of the time`:'Face framing: measuring';
+  $('#p1').textContent=a;
+  const w=A&&A.first?wc(A.base+A.fin+A.int):0,el=A&&A.first?(Date.now()-A.first)/60000:0;
+  $('#p2').textContent=w>8&&el>.05?`Pace ${Math.round(w/el)} WPM`:'Pace: waiting for speech';
+}
+const fmt=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+function tick(){const c=$('#clock');if(!c)return;c.textContent=fmt(Math.max(S.left,0));c.style.color=S.left<=10?'var(--bad)':'var(--ink)';pills()}
+function setCap(t){const c=$('#cap');if(!c)return;if(c.tagName==='TEXTAREA')c.value=t;else c.innerHTML=`<span class="mute">${esc(t)}</span>`}
+function show(){const c=$('#cap');if(c&&c.tagName!=='TEXTAREA')c.innerHTML=esc((A.base+A.fin).trim())+' <span class="mute">'+esc(A.int)+'</span>'}
+function say(t,cb){
+  const av=$('.stage');let done=false,to;
+  const fin=()=>{if(done)return;done=true;clearTimeout(to);av&&av.classList.remove('talk');cb()};
+  if(!('speechSynthesis' in window)){fin();return}
+  speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t),vs=speechSynthesis.getVoices();
+  const v=vs.find(v=>/^en/i.test(v.lang)&&/google|natural|samantha|daniel|aria/i.test(v.name))||vs.find(v=>/^en/i.test(v.lang));if(v)u.voice=v;
+  u.onstart=()=>av&&av.classList.add('talk');u.onend=fin;u.onerror=fin;to=setTimeout(fin,4000+t.length*90);
+  speechSynthesis.speak(u);
+}
+function nextQ(){
+  const q=S.qs[S.i];S.phase='ask';A=null;
+  $('#qn').textContent=`Question ${S.i+1} of ${S.qs.length}`;$('#bar').style.width=(S.i/S.qs.length*100)+'%';
+  $('#qt').textContent=q.q;$('#status').textContent='Interviewer speaking';$('#rec').classList.add('hidden');
+  setCap('The interviewer is asking the question. Your microphone starts when they finish.');
+  S.left=S.limit;$('#clock').textContent=fmt(S.limit);
+  say((S.i===0?`Hi, I'm ${S.iv.n.split(' ')[0]}. Thanks for joining today. `:'')+q.q,listen);
+}
+function listen(){
+  if(S.phase!=='ask')return;S.phase='listen';S.micErr=false;
+  A={base:'',fin:'',int:'',first:0,last:0,pauses:0,start:Date.now()};S.left=S.limit;
+  $('#status').textContent='Listening';$('#rec').classList.remove('hidden');setCap('');tick();
+  timer=setInterval(()=>{S.left--;tick();if(S.left<=0)next(false)},1000);
+  const c=$('#cap');
+  if(!SR){c.oninput=()=>{const n=Date.now();A.fin=c.value;if(!A.first)A.first=n;else if(n-A.last>2500)A.pauses++;A.last=n};return}
+  rec=new SR();rec.continuous=true;rec.interimResults=true;rec.lang='en-US';
+  rec.onresult=e=>{let f='',i='';for(let k=0;k<e.results.length;k++){const r=e.results[k];if(r.isFinal)f+=r[0].transcript+' ';else i+=r[0].transcript}
+    const prev=wc(A.base+A.fin+A.int);A.fin=f;A.int=i;const n=Date.now();
+    if(wc(A.base+f+i)>prev){if(!A.first)A.first=n;else if(n-A.last>2500)A.pauses++;A.last=n}show()};
+  rec.onerror=e=>{if(e.error==='not-allowed'||e.error==='service-not-allowed'){S.micErr=true;const c=$('#cap');if(c&&c.tagName!=='TEXTAREA'){const t=document.createElement('textarea');t.id='cap';t.className='cap';t.placeholder='The microphone is blocked here. Type your answer, or open the page in its own tab to speak.';c.replaceWith(t);
+      t.oninput=()=>{const n=Date.now();A.fin=t.value;A.base='';A.int='';if(!A.first)A.first=n;else if(n-A.last>2500)A.pauses++;A.last=n}}}};
+  rec.onend=()=>{if(S.phase==='listen'&&!S.micErr){A.base+=A.fin+A.int+' ';A.fin='';A.int='';try{rec.start()}catch(e){}}};
+  try{rec.start()}catch(e){}
+}
+function next(skip){
+  if(!S||S.phase==='idle'||S.phase==='done')return;
+  const was=S.phase==='listen';S.phase='x';clearInterval(timer);
+  try{speechSynthesis.cancel()}catch(e){}try{rec&&rec.stop()}catch(e){}rec=null;
+  const txt=was&&A?(A.base+A.fin+A.int).replace(/\s+/g,' ').trim():'';
+  S.res.push({q:S.qs[S.i].q,t:S.qs[S.i].t,r:S.qs[S.i].r,text:skip?'':txt,skipped:skip,
+    secs:!skip&&A&&A.first?Math.max(5,(A.last-A.first)/1000):0,pauses:A?A.pauses:0,delay:A&&A.first?(A.first-A.start)/1000:null});
+  S.i++;S.i>=S.qs.length?report():nextQ();
+}
+function stop(){
+  clearInterval(timer);clearInterval(faceT);cancelAnimationFrame(raf);
+  try{speechSynthesis.cancel()}catch(e){}try{rec&&rec.stop()}catch(e){}rec=null;
+  if(M){M.getTracks().forEach(t=>t.stop());M=null}
+}
+
+/* ---------- Analysis ---------- */
+const STOP=new Set('about would could should their there which where what when have your with that this from into tell describe walk through time give example how you the and for are'.split(' '));
+const STARRE={S:/\b(when|situation|context|project|team|company|last year|at my|was working)\b/,T:/\b(task|goal|responsible|needed to|my role|my job|objective|owner|accountable)\b/,A:/\bi (built|led|created|designed|ran|broke|decided|implemented|proposed|organized|aligned|wrote|set up|started|talked|asked|worked|made|created)\b/,R:/\b(result|resulted|as a result|increased|reduced|cut|saved|shipped|improved|launched|outcome)\b|\d+\s*(%|percent)/};
+function an(r){
+  const t=r.text,low=t.toLowerCase(),n=wc(t),fill={um:0,uh:0,like:0,'you know':0};
+  (low.match(/\b(um+|uh+|like|you know)\b/g)||[]).forEach(m=>fill[m.startsWith('um')?'um':m.startsWith('uh')?'uh':m]++);
+  const qw=(r.q.toLowerCase().match(/[a-z]{5,}/g)||[]).filter(w=>!STOP.has(w));
+  return {...r,n,fill,fc:Object.values(fill).reduce((a,b)=>a+b,0),
+    hedge:low.match(/\b(i think|maybe|kind of|sort of|i guess|probably|hopefully|i suppose|a little bit)\b/g)||[],
+    rep:(low.match(/\b(\w{2,})\s+\1\b/g)||[]).length,
+    st:Object.fromEntries(Object.entries(STARRE).map(([k,re])=>[k,re.test(low)])),
+    sh:(low.match(/\b(first|second|then|because|trade.?off|therefore|however|metric|measure|requirements|scale|risk|priorit\w*)\b/g)||[]).length,
+    num:/\d/.test(t),rel:qw.length?Math.min(1,qw.filter(w=>low.includes(w)).length/2):1,
+    wpm:r.secs>0&&n>8?Math.round(n/(r.secs/60)):0,
+    trail:/(so yeah|i guess|or something|you know)[.!]?$/.test(low)};
+}
+const ul=a=>'<ul class="lst">'+a.map(x=>`<li>${x}</li>`).join('')+'</ul>';
+function sec(title,score,ev,w,f){
+  return `<div class="card p-5"><div class="flex justify-between items-baseline"><h3>${title}</h3><b class="text-lg">${score}</b></div>
+  <div class="track mt-2"><i style="width:${score}%"></i></div><p class="mute text-sm mt-3">${ev}</p>
+  ${w.length?`<h4>What went wrong</h4>${ul(w)}<h4>How to fix it</h4>${ul(f)}`:'<p class="good text-sm mt-3">No major issues found in this area. Keep doing what you did here.</p>'}</div>`;
+}
+function model(q){
+  const r=esc(role()),c=esc(compName());
+  return q.t==='t'
+  ?`Clarify scope first: "Before I dive in, who are the users and what does success look like?" State your approach in one sentence, then walk through two or three steps and name one trade-off at each. Close with how you would test or measure that it works, and what you would revisit as a ${r} at ${c} if requirements changed.`
+  :`Situation: "On my last team we were three weeks from a deadline when a key dependency slipped." Task: "I was accountable for getting us back on track." Action: two or three concrete steps you personally took, phrased with "I". Result: a number and a lesson, such as "We shipped two days early, defects fell 30 percent, and I now build a risk check into every plan." Then link it to why it matters for a ${r} at ${c}.`;
+}
+
+/* ---------- Report ---------- */
+function report(){
+  S.phase='done';stop();$('#step').textContent='Report';window.scrollTo(0,0);
+  const R=S.res.map(an),N=R.length,ans=R.filter(a=>a.n>0),tot=ans.reduce((s,a)=>s+a.n,0),ok=ans.length>0;
+  const secs=ans.reduce((s,a)=>s+a.secs,0),wpm=secs>0?Math.round(tot/(secs/60)):0;
+  const fc=ans.reduce((s,a)=>s+a.fc,0),fr=tot?fc/tot*100:0,pauses=R.reduce((s,a)=>s+a.pauses,0),rep=ans.reduce((s,a)=>s+a.rep,0);
+  const hedges=ans.reduce((s,a)=>s+a.hedge.length,0),hr=tot?hedges/tot*100:0;
+  const dl=ans.filter(a=>a.delay!==null).map(a=>a.delay),delay=dl.length?dl.reduce((a,b)=>a+b,0)/dl.length:0;
+  const skipped=R.filter(a=>!a.n).length,avgW=ok?tot/ans.length:0,frame=F.n>5?Math.round(F.ok/F.n*100):null;
+  const none=['No speech was captured, so this area could not be scored.'],nof=['Allow microphone access, sit close to the mic, and speak in full sentences.'];
+
+  // Content
+  const content=cl(R.reduce((s,a)=>{if(!a.n)return s;const str=a.t==='b'?Object.values(a.st).filter(Boolean).length/4:Math.min(a.sh/4,1);return s+Math.min(a.n/100,1)*35+str*35+(a.num?15:0)+a.rel*15},0)/N);
+  let cw=[],cf=[];
+  if(!ok){cw=none;cf=nof}else{
+    if(skipped){cw.push(`${skipped} of ${N} questions had no answer.`);cf.push('Give a partial answer instead of skipping: one line of context, what you did, and the outcome.')}
+    if(avgW<70){cw.push(`Answers averaged ${Math.round(avgW)} words, too short to show your judgment.`);cf.push('Aim for 120 to 200 words, about 60 to 90 seconds, for behavioral answers.')}
+    const bA=ans.filter(a=>a.t==='b'),nm={S:'Situation',T:'Task',A:'Action',R:'Result'},fx={S:'Open with two sentences of context: the team, the stakes, and the deadline.',T:'State your exact responsibility in one sentence, such as "I was accountable for...".',A:'Describe two or three concrete steps using "I" rather than "we" so your contribution is clear.',R:'Finish every answer with a measurable result and one lesson learned.'};
+    Object.keys(nm).forEach(k=>{const m=bA.filter(a=>!a.st[k]).length;if(bA.length&&m/bA.length>=.5){cw.push(`${nm[k]} was missing in ${m} of ${bA.length} behavioral answers.`);cf.push(fx[k])}});
+    if(ans.filter(a=>a.num).length<ans.length/2){cw.push('Most answers contained no numbers or measurable outcomes.');cf.push('Add at least one figure per answer: time saved, revenue, error rate, users, or team size.')}
+    const lo=ans.filter(a=>a.rel<.5).length;if(lo){cw.push(`${lo} answer${lo>1?'s':''} barely echoed the key terms of the question and may have drifted off topic.`);cf.push('Restate the question in your first sentence, then answer it directly.')}
+  }
+  // Pacing
+  const pacing=ok&&wpm?cl(100-Math.min(60,Math.abs(wpm-145)*1.2)):0;let pw=[],pf=[];
+  if(!ok||!wpm){pw=none;pf=nof}else{
+    if(wpm>170){pw.push(`You averaged ${wpm} WPM, faster than most listeners can absorb.`);pf.push('Pause for one beat after each main point and aim for 130 to 160 WPM.')}
+    else if(wpm<115){pw.push(`You averaged ${wpm} WPM, which sounds hesitant.`);pf.push('Rehearse your opening line aloud, then speak in complete sentences without restarting.')}
+    const ws=ans.map(a=>a.wpm).filter(Boolean);if(ws.length>1&&Math.max(...ws)-Math.min(...ws)>50){pw.push(`Your pace ranged from ${Math.min(...ws)} to ${Math.max(...ws)} WPM between answers.`);pf.push('Hold a steady rhythm: move a little faster through context and slow down for your result.')}
+  }
+  // Articulation
+  const artic=ok?cl(100-Math.min(55,fr*7)-Math.min(20,pauses*4)-Math.min(10,rep*2)):0;let aw=[],af=[];
+  const top=Object.entries(ans.reduce((o,a)=>{Object.entries(a.fill).forEach(([k,v])=>o[k]=(o[k]||0)+v);return o},{})).filter(e=>e[1]).sort((a,b)=>b[1]-a[1]).map(e=>`"${e[0]}" x${e[1]}`).join(', ');
+  if(!ok){aw=none;af=nof}else{
+    if(fr>2){aw.push(`${fc} filler words, ${fr.toFixed(1)} per 100 words (${top}).`);af.push('Replace fillers with a silent one-second pause. Practice by recording 60-second answers and replaying them.')}
+    if(pauses>0){aw.push(`${pauses} mid-answer pause${pauses>1?'s':''} longer than 2.5 seconds.`);af.push('Use a signpost such as "There are three parts to this" to buy thinking time without dead air.')}
+    if(rep>1){aw.push(`You repeated the same word back to back ${rep} times.`);af.push('Finish the thought before speaking, and slow down slightly when a sentence gets complex.')}
+  }
+  // Confidence
+  const conf=ok?cl(100-Math.min(35,hr*6)-Math.min(20,Math.max(0,delay-4)*4)-Math.min(20,skipped*7)-(avgW<50?15:0)-(frame!==null&&frame<70?(70-frame)*.3:0)):0;let kw=[],kf=[];
+  if(!ok){kw=none;kf=nof}else{
+    if(hr>1.5){const h={};ans.forEach(a=>a.hedge.forEach(x=>h[x]=(h[x]||0)+1));kw.push(`Hedging language appeared ${hedges} times (${Object.entries(h).map(e=>`"${e[0]}" x${e[1]}`).join(', ')}).`);kf.push('Replace "I think maybe we" with a direct claim followed by evidence: "I chose X because Y."')}
+    if(delay>4){kw.push(`You took an average of ${delay.toFixed(1)} seconds to start speaking.`);kf.push('Take one breath, then open with the headline of your answer. You can add detail afterward.')}
+    if(skipped){kw.push(`Skipping ${skipped} question${skipped>1?'s':''} signals low readiness.`);kf.push('Buy time with "Let me think for a moment" and then structure your answer aloud.')}
+    if(ans.some(a=>a.trail)){kw.push('At least one answer trailed off with "so yeah" or "I guess".');kf.push('End on your result, say nothing more, and let the silence do the work.')}
+    if(frame!==null&&frame<70){kw.push(`You were centered in frame only ${frame}% of the time.`);kf.push('Set the camera at eye level and look at the lens, not the screen, when making key points.')}
+  }
+  const overall=cl(content*.4+pacing*.2+artic*.2+conf*.2);
+  const secs4=[['Content and relevance',content],['Pacing',pacing],['Articulation',artic],['Confidence',conf]];
+  const worst=[...secs4].sort((a,b)=>a[1]-b[1]).slice(0,2).map(s=>s[0]);
+  const fixMap={'Content and relevance':cf,Pacing:pf,Articulation:af,Confidence:kf};
+  const prio=worst.map(n=>fixMap[n][0]).filter(Boolean);
+  const bA=ans.filter(a=>a.t==='b'),Rr=54,C=2*Math.PI*Rr;
+  app.innerHTML=`<section class="fade space-y-4">
+  <div class="card p-5 sm:p-7 flex flex-col sm:flex-row items-center gap-6">
+    <div class="relative w-36 h-36 shrink-0"><svg viewBox="0 0 128 128" class="w-36 h-36 -rotate-90"><circle cx="64" cy="64" r="${Rr}" stroke="var(--soft)" stroke-width="10" fill="none"/>
+    <circle id="ring" cx="64" cy="64" r="${Rr}" stroke="var(--ink)" stroke-width="10" fill="none" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C}" style="transition:stroke-dashoffset 1.1s ease"/></svg>
+    <div class="absolute inset-0 grid place-items-center text-center"><div><div class="text-4xl font-semibold">${overall}</div><div class="text-xs mute">out of 100</div></div></div></div>
+    <div><h2 class="text-xl">${!ok?'No speech captured':overall>=80?'Strong interview':overall>=60?'Solid, with clear gaps':'Needs focused practice'}</h2>
+    <p class="mute text-sm mt-1">${esc(role())} at ${esc(compName())}. ${N-skipped} of ${N} questions answered, ${tot} words spoken${wpm?`, ${wpm} WPM`:''}. Scores come from your actual transcript and timing. Voice tone and eye gaze are not analysed.</p>
+    ${prio.length?`<p class="text-sm mt-2"><b>Fix first:</b> ${prio.join(' ')}</p>`:''}</div></div>
+  ${!ok?'<div class="card p-5 bad text-sm">Nothing was heard from your microphone. Check browser permissions and that you are using Chrome or Edge, then retake the interview.</div>':''}
+  <h3 class="pt-2">Performance breakdown</h3>
+  ${sec('Content and relevance',content,`${Math.round(avgW)} words per answer on average. Judged on length, structure, specifics, and relevance to the question.`,cw,cf)}
+  ${sec('Pacing',pacing,`${wpm||'No'} words per minute overall. The target range is 130 to 160.`,pw,pf)}
+  ${sec('Articulation',artic,`${fc} fillers, ${pauses} long pauses, ${rep} repeated words. Browser captions often drop "um" and "uh", so your true filler count may be higher.`,aw,af)}
+  ${sec('Confidence',conf,`Estimated from hedging, start delay (${delay?delay.toFixed(1)+'s':'n/a'}), completion, and camera framing (${frame!==null?frame+'% centered':'camera off or unsupported, not measured'}).`,kw,kf)}
+  <div class="card p-5"><h3>Filler words and pauses</h3><div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3">
+    ${['um','uh','like','you know'].map(k=>{const v=ans.reduce((s,a)=>s+a.fill[k],0);return `<div class="rounded-lg p-3 text-center" style="background:var(--soft)"><div class="text-2xl font-semibold">${v}</div><div class="text-xs mute">"${k}"</div></div>`}).join('')}</div>
+    <p class="mute text-sm mt-3">${pauses} pause${pauses===1?'':'s'} over 2.5 seconds flagged. "Like" is counted even when used correctly, so treat it as an upper bound.</p></div>
+  <div class="card p-5"><h3>STAR matrix</h3><p class="mute text-sm">Share of behavioral answers containing each element (${bA.length} evaluated).</p>
+    <div class="grid grid-cols-2 gap-3 mt-3">${[['S','Situation'],['T','Task'],['A','Action'],['R','Result']].map(([k,n])=>{const p=bA.length?Math.round(bA.filter(a=>a.st[k]).length/bA.length*100):null;
+    return `<div class="rounded-lg p-3" style="background:var(--soft)"><div class="flex justify-between text-sm"><b>${n}</b><span class="${p!==null&&p<50?'bad':'good'}">${p===null?'n/a':p+'%'}</span></div><div class="text-xs mute mt-1">${p===null?'No behavioral answers this session.':p>=50?'Present in most answers.':'Often missing. See the fix above.'}</div></div>`}).join('')}</div></div>
+  <div class="card p-5"><h3 class="mb-3">Question review and rewrites</h3><div class="space-y-2">${R.map((a,i)=>{
+    const iss=[];if(!a.n)iss.push(a.skipped?'Skipped.':'No speech captured.');else{
+      if(a.n<50)iss.push(`Short answer (${a.n} words).`);if(a.fc>2)iss.push(`${a.fc} filler words.`);if(a.pauses)iss.push(`${a.pauses} long pause${a.pauses>1?'s':''}.`);
+      if(a.t==='b'){const m=Object.entries({S:'Situation',T:'Task',A:'Action',R:'Result'}).filter(e=>!a.st[e[0]]).map(e=>e[1]);if(m.length)iss.push('Missing: '+m.join(', ')+'.')}
+      if(!a.num)iss.push('No measurable figure.')}
+    return `<details class="rounded-lg border" style="border-color:var(--line)"><summary class="p-3 flex justify-between gap-3 text-sm"><span><span class="mute">Q${i+1}</span> ${a.r?'<span class="chip on" style="padding:.05rem .5rem;font-size:.7rem">From your resume</span> ':''}${esc(a.q)}</span><span class="chev mute">&#9662;</span></summary>
+    <div class="px-3 pb-3 space-y-3 text-sm"><div><h4 style="margin-top:0">Your transcript${a.wpm?` (${a.n} words, ${a.wpm} WPM)`:''}</h4><p>${a.text?esc(a.text):'<span class="mute">Nothing captured.</span>'}</p></div>
+    ${iss.length?`<div><h4 style="margin-top:0">Feedback</h4>${ul(iss)}</div>`:'<p class="good">This answer had no major issues.</p>'}
+    <div class="rounded-lg p-3" style="background:var(--soft)"><h4 style="margin-top:0">Suggested stronger response</h4><p>${model(a)}</p></div></div></details>`}).join('')}</div></div>
+  <button id="retake" class="btn">Retake interview</button></section>`;
+  requestAnimationFrame(()=>setTimeout(()=>{const r=$('#ring');if(r)r.style.strokeDashoffset=C*(1-overall/100)},80));
+  $('#retake').onclick=setup;
+}
+setup();
+</script>
+</body>
+</html>
